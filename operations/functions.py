@@ -20,6 +20,10 @@ def check(username, password):
         return valid, access
 
 
+def get_evaluations(username):
+    return username
+
+
 def get_data():
     # 在这里实现从后端数据库或其他数据源获取数据的逻辑
     # 返回获取到的数据
@@ -36,3 +40,7 @@ def get_data():
         # 更多数据...
     ]
     return data
+
+
+def create_peer_table(usernames):
+    return None
