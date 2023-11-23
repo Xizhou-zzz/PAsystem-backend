@@ -1,8 +1,8 @@
 import random
 import time
 
-# from operations.controller import DBcontroller
-from controller import DBcontroller     # 单独调试函数时使用
+from operations.controller import DBcontroller
+# from controller import DBcontroller     # 单独调试函数时使用
 db = DBcontroller.Database()
 
 
