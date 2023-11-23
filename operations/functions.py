@@ -4,7 +4,7 @@ db = DBcontroller.Database()
 
 
 def check(username, password):
-    saved_message = db.select('user', condition=f"username = '{username}'")  # 查询数据库信息
+    saved_message = db.select('users', condition=f"username = '{username}'")  # 查询数据库信息
     if saved_message.empty:
         print(f"没有找到 {username} 的信息")
         return 0, None
