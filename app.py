@@ -29,9 +29,9 @@ def login():
 def create_peer_evaluations():
     data = request.get_json()
     usernames = data['usernames']  # 获取前端传输的学生用户名列表
-
+    homework = data['homework']     # 获取前端传输的该作业信息
     # 调用创建互评关系表的函数
-    table_name = functions.create_peer_table(usernames)
+    table_name = functions.create_peer_table(usernames, homework)   # 返回还不完善
 
     if table_name:
         return jsonify({'status': 'success', 'message': 'Peer evaluations created successfully.'})

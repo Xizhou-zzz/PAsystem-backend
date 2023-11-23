@@ -13,8 +13,15 @@ class Database:
         self.cursor = self.conn.cursor()
 
     def create_table(self, table_name, columns):
+        # 判断表格是否存在
+        self.cursor.execute(f"SHOW TABLES LIKE '{table_name}'")
+        if self.cursor.fetchone():
+            # 如果表格已经存在，则删除它
+            self.cursor.execute(f"DROP TABLE {table_name}")
+            print(f"Table {table_name} deleted.")
+
         # 创建表格
-        sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})"
+        sql = f"CREATE TABLE {table_name} ({columns})"
         self.cursor.execute(sql)
         self.conn.commit()
         print(f"Table {table_name} created.")
