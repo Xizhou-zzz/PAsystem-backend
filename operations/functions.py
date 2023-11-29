@@ -37,7 +37,7 @@ def get_data():
             'course_id': 'C001',
             'class_id': 'CL001',
             'student_name': '学生A',
-            'grade': '85',
+            'grade': '90',
             'peer_reviewer': '学生B'
         },
         # 更多数据...
