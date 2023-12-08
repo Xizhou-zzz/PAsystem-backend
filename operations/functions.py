@@ -2,8 +2,9 @@ import random
 import time
 import pymysql.err
 
-# from operations.controller import DBcontroller
-from controller import DBcontroller     # 单独调试函数时使用
+from operations.controller import DBcontroller
+
+# from controller import DBcontroller     # 单独调试函数时使用
 db = DBcontroller.Database()
 
 
@@ -46,33 +47,49 @@ def get_data():
     return data
 
 
-# operation将包括增（ins）删（del）改（upd）查（sl）, 被操作的表名为course
-def course_management(operation):
-    data = {
-        "course_name": "软件项目管理与产品运维",
-        "course_id": "M310008B",
-        "main_teacher": "马翼萱",
-        "teaching_room": "YF509",
-        "teaching_time": "Mon 16:20-18:10"
-    }
-    if operation == "ins":
-        try:
-            db.insert("course", tuple(data.values()))
-        except pymysql.err.IntegrityError as e:
-            if e.args[0] == 1062:  # 检查错误码是否为 1062, 有关主键的冲突问题
-                print("Duplicate entry. Insertion failed.")
-            else:
-                # 其他处理逻辑
-                print("An error occurred during insertion:", e)
-    elif operation == "del":
-        condition = f"course_id='{data['course_id']}'"
-        db.delete("course", condition)
-    elif operation == "upd":
-        column_values = ", ".join([f"{k}='{v}'" for k, v in data.items()])
-        condition = f"course_id='{data['course_id']}'"
-        db.update("course", column_values, condition)
-    # elif operation == "sl":
+def course_ins(data):
+    try:
+        db.insert("course", tuple(data.values()))
+        return True
+    except pymysql.err.IntegrityError as e:
+        if e.args[0] == 1062:  # 检查错误码是否为 1062, 有关主键的冲突问题
+            print("Duplicate entry. Insertion failed.")
+        else:
+            # 其他处理逻辑
+            print("An error occurred during insertion:", e)
 
+
+def course_del(course_id):
+    condition = f"course_id='{course_id}'"
+    db.delete("course", condition)
+    return True
+
+# operation将包括增（ins）删（del）改（upd）查（sl）, 被操作的表名为course
+# def course_management(operation):
+#     data = {
+#         "course_name": "软件项目管理与产品运维",
+#         "course_id": "M310008B",
+#         "main_teacher": "马翼萱",
+#         "teaching_room": "YF509",
+#         "teaching_time": "Mon 16:20-18:10"
+#     }
+#     if operation == "ins":
+#         try:
+#             db.insert("course", tuple(data.values()))
+#         except pymysql.err.IntegrityError as e:
+#             if e.args[0] == 1062:  # 检查错误码是否为 1062, 有关主键的冲突问题
+#                 print("Duplicate entry. Insertion failed.")
+#             else:
+#                 # 其他处理逻辑
+#                 print("An error occurred during insertion:", e)
+#     elif operation == "del":
+#         condition = f"course_id='{data['course_id']}'"
+#         db.delete("course", condition)
+#     elif operation == "upd":
+#         column_values = ", ".join([f"{k}='{v}'" for k, v in data.items()])
+#         condition = f"course_id='{data['course_id']}'"
+#         db.update("course", column_values, condition)
+#     # elif operation == "sl":
 
 
 def create_peer_table(usernames, homework):
@@ -89,16 +106,17 @@ def create_peer_table(usernames, homework):
     print(f"num_students:{num_students}")
     if num_students < 3:
         print("完成学生数量过少")
-        return None     # 直接跳出函数
+        return None  # 直接跳出函数
     else:
         # 确定每个人的工作量，至少为3
-        min_reviews_float = max(num_students / 6 if num_students < 30 else num_students / 8 if num_students < 70 else num_students / 10, 3)
+        min_reviews_float = max(
+            num_students / 6 if num_students < 30 else num_students / 8 if num_students < 70 else num_students / 10, 3)
         min_reviews = int(min_reviews_float)
     print(f"每人最少评：{min_reviews}份")
 
     homework_name = homework["name"]
     homework_date = homework["date"]
-    table_name = "pt_" + homework_name + "_" + homework_date     # 创建的互评表的表名，格式为pt_课程名_日期
+    table_name = "pt_" + homework_name + "_" + homework_date  # 创建的互评表的表名，格式为pt_课程名_日期
     print(table_name)
     columns = "reviewer VARCHAR(50) NOT NULL, reviewee VARCHAR(50) NOT NULL"
     db.create_table(table_name, columns)
@@ -115,10 +133,8 @@ def create_peer_table(usernames, homework):
         db.insert(table_name, (reviewer, reviewee))
 
     df = db.select(table_name)
-    print(df)   # 打印表以供查看
+    print(df)  # 打印表以供查看
     # 返回尚不完善
     return None
 
-
-
-course_management(operation="upd")
+# course_management(operation="upd")

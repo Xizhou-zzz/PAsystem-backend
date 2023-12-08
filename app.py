@@ -60,6 +60,38 @@ def homework_datasource():
     datasource = functions.get_data()
     return jsonify(datasource)
 
+################
+# 分割线  admin #
+################
+@app.route('/teaching_manage/course_manage/insert', methods=['POST'])
+def course_insert():
+    data = request.json
+    status = functions.course_ins(data)
+    if status:
+        return jsonify({'status': 'success', 'message': '1 row insert successfully.'})
+    else:
+        return jsonify({'status': 'failure', 'message': 'insert failed.'})
+
+@app.route('/teaching_manage/course_manage/insert', methods=['POST'])
+def course_delete():
+    course_id_to_delete = request.json
+    status = functions.course_del(course_id_to_delete)
+    if status:
+        return jsonify({'status': 'success', 'message': '1 row deleted successfully.'})
+    else:
+        return jsonify({'status': 'failure', 'message': 'insert failed.'})
+
+##################
+# 分割线  teacher #
+##################
+@app.route('/Course_platform_t/Student_grade/delete', methods=['DELETE'])
+def grade_delete():
+    return True
+
+
+##################
+# 分割线  student #
+##################
 
 if __name__ == '__main__':
     app.run()
