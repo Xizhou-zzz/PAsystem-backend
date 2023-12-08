@@ -4,3 +4,5 @@ pytest-xdist
 pytest-ordering
 pytest-rerunfailures
 allure-pytest
+
+pandas~=2.1.3

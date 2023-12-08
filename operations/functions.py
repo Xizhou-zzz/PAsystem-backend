@@ -1,8 +1,9 @@
 import random
 import time
+import pymysql.err
 
-from operations.controller import DBcontroller
-# from controller import DBcontroller     # 单独调试函数时使用
+# from operations.controller import DBcontroller
+from controller import DBcontroller     # 单独调试函数时使用
 db = DBcontroller.Database()
 
 
@@ -43,6 +44,35 @@ def get_data():
         # 更多数据...
     ]
     return data
+
+
+# operation将包括增（ins）删（del）改（upd）查（sl）, 被操作的表名为course
+def course_management(operation):
+    data = {
+        "course_name": "软件项目管理与产品运维",
+        "course_id": "M310008B",
+        "main_teacher": "马翼萱",
+        "teaching_room": "YF509",
+        "teaching_time": "Mon 16:20-18:10"
+    }
+    if operation == "ins":
+        try:
+            db.insert("course", tuple(data.values()))
+        except pymysql.err.IntegrityError as e:
+            if e.args[0] == 1062:  # 检查错误码是否为 1062, 有关主键的冲突问题
+                print("Duplicate entry. Insertion failed.")
+            else:
+                # 其他处理逻辑
+                print("An error occurred during insertion:", e)
+    elif operation == "del":
+        condition = f"course_id='{data['course_id']}'"
+        db.delete("course", condition)
+    elif operation == "upd":
+        column_values = ", ".join([f"{k}='{v}'" for k, v in data.items()])
+        condition = f"course_id='{data['course_id']}'"
+        db.update("course", column_values, condition)
+    # elif operation == "sl":
+
 
 
 def create_peer_table(usernames, homework):
@@ -89,3 +119,6 @@ def create_peer_table(usernames, homework):
     # 返回尚不完善
     return None
 
+
+
+course_management(operation="upd")
