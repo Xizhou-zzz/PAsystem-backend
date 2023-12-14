@@ -47,6 +47,24 @@ def get_data():
     return data
 
 
+def get_course_data():
+    df = db.select('course')
+    course_data = []
+
+    for index, row in df.iterrows():
+        course = {
+            'key': str(index + 1),
+            'course_name': row['course_name'],
+            'course_id': row['course_id'],
+            'teacher_name': row['main_teacher'],
+            'classroom': row['teaching_room'],
+            'time': row['teaching_time'],
+        }
+        course_data.append(course)
+
+    return course_data
+
+
 def course_ins(data):
     try:
         db.insert("course", tuple(data.values()))
@@ -137,4 +155,3 @@ def create_peer_table(usernames, homework):
     # 返回尚不完善
     return None
 
-# course_management(operation="upd")

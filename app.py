@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify, session
 from operations import functions
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'penggeniubi'
 
 
@@ -29,9 +32,9 @@ def login():
 def create_peer_evaluations():
     data = request.get_json()
     usernames = data['usernames']  # 获取前端传输的学生用户名列表
-    homework = data['homework']     # 获取前端传输的该作业信息
+    homework = data['homework']  # 获取前端传输的该作业信息
     # 调用创建互评关系表的函数
-    table_name = functions.create_peer_table(usernames, homework)   # 返回还不完善
+    table_name = functions.create_peer_table(usernames, homework)  # 返回还不完善
 
     if table_name:
         return jsonify({'status': 'success', 'message': 'Peer evaluations created successfully.'})
@@ -60,9 +63,16 @@ def homework_datasource():
     datasource = functions.get_data()
     return jsonify(datasource)
 
+
 ################
 # 分割线  admin #
 ################
+@app.route('/teaching_manage/course_manage/get', methods=['GET'])
+def course_get_data():
+    course_data = functions.get_course_data()
+    return jsonify(course_data)
+
+
 @app.route('/teaching_manage/course_manage/insert', methods=['POST'])
 def course_insert():
     data = request.json
@@ -72,14 +82,17 @@ def course_insert():
     else:
         return jsonify({'status': 'failure', 'message': 'insert failed.'})
 
-@app.route('/teaching_manage/course_manage/insert', methods=['POST'])
+
+@app.route('/teaching_manage/course_manage/delete', methods=['POST'])
 def course_delete():
-    course_id_to_delete = request.json
+    data = request.json
+    course_id_to_delete = data['course_id']
     status = functions.course_del(course_id_to_delete)
     if status:
         return jsonify({'status': 'success', 'message': '1 row deleted successfully.'})
     else:
         return jsonify({'status': 'failure', 'message': 'insert failed.'})
+
 
 ##################
 # 分割线  teacher #
