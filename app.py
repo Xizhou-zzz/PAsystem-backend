@@ -25,6 +25,8 @@ def login():
         return jsonify({'status': 'ok', 'access': access})
     elif valid == 0:
         return jsonify({'status': 'error', 'message': 'User does not exist.'})
+    elif valid == -1:
+        return jsonify({'status': 'error', 'message': 'Password is error.'})
 
 
 # 此函数用来创建一个作业的"互评关系"表，由老师执行“开启互评”触发
@@ -91,7 +93,7 @@ def course_delete():
     if status:
         return jsonify({'status': 'success', 'message': '1 row deleted successfully.'})
     else:
-        return jsonify({'status': 'failure', 'message': 'insert failed.'})
+        return jsonify({'status': 'failure', 'message': 'delete failed.'})
 
 
 ##################

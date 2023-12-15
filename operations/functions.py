@@ -20,7 +20,7 @@ def check(username, password):
             valid = 1
             access = saved_message['access'].iloc[0]
         else:
-            valid = 0
+            valid = -1
             access = 'err'
         return valid, access
 
@@ -77,10 +77,26 @@ def course_ins(data):
             print("An error occurred during insertion:", e)
 
 
+# def course_del(course_id):
+#     condition = f"course_id='{course_id}'"
+#     db.delete("course", condition)
+#     return True
+
 def course_del(course_id):
     condition = f"course_id='{course_id}'"
-    db.delete("course", condition)
-    return True
+
+    # 使用select方法查询指定的course_id
+    existing_courses = db.select("course", condition=condition)
+
+    # 检查DataFrame是否为空（即是否找到了匹配的课程）
+    if not existing_courses.empty:
+        # 如果DataFrame不为空，说明找到了课程，执行删除操作
+        db.delete("course", condition)
+        return True
+    else:
+        # 如果DataFrame为空，说明没有找到对应的课程，返回False
+        return False
+
 
 # operation将包括增（ins）删（del）改（upd）查（sl）, 被操作的表名为course
 # def course_management(operation):
