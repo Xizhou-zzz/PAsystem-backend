@@ -104,9 +104,35 @@ def grade_delete():
     return True
 
 
+@app.route('/Homework_platform/homework_manage/add', methods=['POST'])
+def add_homework():
+    data = request.json
+    status = functions.add_homework(data)
+    if status:
+        return jsonify({'status': 'success', 'message': 'Homework added successfully.'})
+    else:
+        return jsonify({'status': 'failure', 'message': 'adding homework failed.'})
+
+
+@app.route('/Homework_platform/homework_manage/data_analysis', methods=['GET'])
+def data_analysis():
+    data = functions.get_data()
+    report = functions.generate_report(data)
+    return jsonify({'status': 'success', 'report': report})
+
+
 ##################
 # 分割线  student #
 ##################
+@app.route('/Homework_platform/homework_submission/submit', methods=['POST'])
+def submit_homework():
+    data = request.json
+    status = functions.submit_homework(data)
+    if status:
+        return jsonify({'status': 'success', 'message': 'Homework submitted successfully.'})
+    else:
+        return jsonify({'status': 'failure', 'message': 'submitting homework failed.'})
+
 
 if __name__ == '__main__':
     app.run()

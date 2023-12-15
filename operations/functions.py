@@ -171,3 +171,23 @@ def create_peer_table(usernames, homework):
     # 返回尚不完善
     return None
 
+
+def add_homework(data):
+    if data:
+        return True
+    else:
+        return False
+
+
+def submit_homework(data):
+    if data:
+        return True
+    else:
+        return False
+
+
+def generate_report(data):
+    if data:
+        return True
+    else:
+        return False
