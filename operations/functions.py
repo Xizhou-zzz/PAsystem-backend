@@ -191,3 +191,45 @@ def generate_report(data):
         return True
     else:
         return False
+
+
+##################
+# 分割线  teacher #
+##################
+def insert_homework(homework_data, teacher_name):
+    # 构造表名
+    table_name = f'{teacher_name}_homework'
+    try:
+        db.insert(table_name, tuple(homework_data.values()))
+        return True
+    except pymysql.err.IntegrityError as e:
+        if e.args[0] == 1062:  # 检查错误码是否为 1062, 有关主键的冲突问题
+            print("Duplicate entry. Insertion failed.")
+        else:
+            # 其他处理逻辑
+            print("An error occurred during insertion:", e)
+
+
+def get_homework_data(teacher_name):
+    table_name = f'{teacher_name}_homework'
+    df = db.select(table_name)
+    print(df)
+    homework_data = []
+
+    for index, row in df.iterrows():
+        homework = {
+            'key': str(index + 1),
+            'homework_title': row['title'],
+            'course_id': row['course_code'],
+            'class_id': row['class_code'],
+            'submitted_count': row['submitted_count'],
+            'total_count': row['total_count'],
+            'course_name': row['course_name'],
+            'deadline': row['due_date'],
+            'assignment_description': row['assignment_description'],
+            'attachment_path': row['attachment_path']
+        }
+        homework_data.append(homework)
+
+    return homework_data
+
