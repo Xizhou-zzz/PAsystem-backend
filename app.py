@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, session, redirect
 
 from flask_session import Session
 from operations import functions
-
+import mysql.connector
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -78,6 +78,21 @@ def homework_datasource():
     return jsonify(datasource)
 
 
+@app.route('/api/courses', methods=['GET'])
+def get_courses():
+    connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='Ys012567',
+        database='pa'
+    )
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM course')
+    courses = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return jsonify(courses)
+
 ################
 # 分割线  admin #
 ################
@@ -110,6 +125,78 @@ def course_delete():
     else:
         return jsonify({'status': 'failure', 'message': 'delete failed.'})
 
+@app.route('/api/people', methods=['GET'])
+def get_people():
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+
+        # 获取学生数据
+        cursor.execute("SELECT * FROM users WHERE access = 'student'")
+        students = cursor.fetchall()
+
+        # 获取教师数据
+        cursor.execute("SELECT * FROM users WHERE access = 'teacher'")
+        teachers = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        return jsonify({"students": students, "teachers": teachers})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 获取用户列表
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM users')  # 确保表名和字段与数据库匹配
+        users = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 更新用户权限
+@app.route('/api/users/<user_id>/access', methods=['POST'])
+def update_access(user_id):
+    new_access = request.json.get('access')
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor()
+        cursor.execute("UPDATE users SET access = %s WHERE id = %s", (new_access, user_id,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        print("Something went wrong: {}".format(err))
+        return jsonify({"error": "Database error"}), 500
+    except Exception as e:
+        print("An error occurred: {}".format(e))
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        cursor.close()
+        connection.close()
+    return jsonify({"success": True})
 
 ##################
 # 分割线  teacher #
