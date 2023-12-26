@@ -93,6 +93,59 @@ def get_courses():
     connection.close()
     return jsonify(courses)
 
+
+@app.route('/api/user/<user_id>', methods=['GET'])
+def get_user(user_id):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT username, id, access, email, address FROM users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        cursor.close()
+        connection.close()
+        if user:
+            return jsonify(user)
+        else:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/user/update', methods=['POST'])
+def update_user():
+    data = request.json
+    user_id = data.get("id")  # 确保这与前端发送的数据匹配
+    username = data.get("username")
+    access = data.get("access")
+    email = data.get("email")
+    address = data.get("address")
+    # 如果还有其他字段，继续添加
+
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor()
+        cursor.execute(
+            'UPDATE users SET username = %s, access = %s, email = %s, address = %s WHERE id = %s',
+            (username, access, email, address, user_id)
+        )
+        connection.commit()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+    return jsonify({"success": True})
+
+
 ################
 # 分割线  admin #
 ################
