@@ -83,7 +83,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='Ys012567',
+        password='20020830wyb2618',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -100,7 +100,7 @@ def get_user(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -129,7 +129,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor()
@@ -184,7 +184,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -211,7 +211,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -231,7 +231,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor()
