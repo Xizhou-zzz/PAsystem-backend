@@ -83,7 +83,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='Ys012567',
+        password='124356tbw',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -91,6 +91,7 @@ def get_courses():
     courses = cursor.fetchall()
     cursor.close()
     connection.close()
+    print(jsonify(courses))
     return jsonify(courses)
 
 
@@ -100,7 +101,7 @@ def get_user(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -129,7 +130,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor()
@@ -184,7 +185,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -211,7 +212,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -231,7 +232,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor()
@@ -262,16 +263,16 @@ def homework_get_data():
     homework_data = functions.get_homework_data('teacher1')
     return jsonify(homework_data)
 
-@app.route('/homework_platform/homework_manage/create', methods=['POST'])
-def create_homework():
-    teacher_name = session.get('username')  # 从前端中获取当前登录用户的用户名
-    print(f"{teacher_name} -- request to create homework")
-    homework_data = request.json  # 从请求的 JSON 数据中获取作业信息
-    status = functions.insert_homework(homework_data, teacher_name)
-    if status:
-        return jsonify({'status': 'success', 'message': '作业已创建'})
-    else:
-        return jsonify({'status': 'failure', 'message': 'create failed.'})
+# @app.route('/homework_platform/homework_manage/create', methods=['POST'])
+# def create_homework():
+    # teacher_name = session.get('username')  # 从前端中获取当前登录用户的用户名
+    # print(f"{teacher_name} -- request to create homework")
+    # homework_data = request.json  # 从请求的 JSON 数据中获取作业信息
+    # status = functions.insert_homework(homework_data, teacher_name)
+    # if status:
+    #     return jsonify({'status': 'success', 'message': '作业已创建'})
+    # else:
+    #     return jsonify({'status': 'failure', 'message': 'create failed.'})
 
 
 @app.route('/Course_platform_t/Student_grade/delete', methods=['DELETE'])
