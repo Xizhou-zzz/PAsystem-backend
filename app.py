@@ -1,5 +1,7 @@
 import requests
 from flask import Flask, request, jsonify, session, redirect
+from werkzeug.utils import secure_filename
+import os
 
 from flask_session import Session
 from operations import functions
@@ -18,6 +20,20 @@ app.secret_key = 'sbyp'
 #         return redirect('http://localhost:8000' + request.path, code=307)
 
 
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    # upload_folder = 'uploads'
+    # if not os.path.exists(upload_folder):
+    #     os.makedirs(upload_folder)
+    if 'file' not in request.files:
+        return 'No file part'
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file'
+    if file:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join('C:\\Users\\jiexinXe\\Desktop\\Codefield\\Github\\PAsystem-backend\\uploads', filename))
+        return 'File uploaded successfully'
 
 # 登录相关方法
 @app.route('/api/login', methods=['POST'])
@@ -94,8 +110,8 @@ def get_courses():
     return jsonify(courses)
 
 
-@app.route('/api/user/<user_id>', methods=['GET'])
-def get_user(user_id):
+@app.route('/api/user/<user_name>', methods=['GET'])
+def get_user(user_name):
     try:
         connection = mysql.connector.connect(
             host='localhost',
@@ -104,7 +120,7 @@ def get_user(user_id):
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT username, id, access, email, address FROM users WHERE id = %s", (user_id,))
+        cursor.execute("SELECT username, id, access, email, address FROM users WHERE username = %s", (user_name,))
         user = cursor.fetchone()
         cursor.close()
         connection.close()
@@ -254,9 +270,9 @@ def update_access(user_id):
 ##################
 # 分割线  teacher #
 ##################
-@app.route('/homework_platform/homework_manage/get', methods=['GET'])
+@app.route('/homework_platform/homework_manage/get/<user_name>', methods=['GET'])
 def homework_get_data():
-    username = request.cookies.get('username')
+    username = user_name
     session_info = session.get(username)  # 从前端中获取当前登录用户的用户名
     print(f'homework_platform-get: sesion_info: {session_info}')
     homework_data = functions.get_homework_data('teacher1')
@@ -295,6 +311,44 @@ def data_analysis():
     report = functions.generate_report(data)
     return jsonify({'status': 'success', 'report': report})
 
+@app.route('/teaching_manage/course_manage/get/<user_name>', methods=['GET'])
+def course_get_tdata(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM course WHERE main_teacher = %s", (user_name,))
+        course_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if course_data:
+            return jsonify(course_data)
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/homework_manage/teacher_get/<user_name>', methods=['GET'])
+def get_homeworks(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM homework, users WHERE users.username = %s and users.id = homework.teacher_id", (user_name,))
+        homework_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(homework_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 ##################
 # 分割线  student #
@@ -307,6 +361,27 @@ def submit_homework():
         return jsonify({'status': 'success', 'message': 'Homework submitted successfully.'})
     else:
         return jsonify({'status': 'failure', 'message': 'submitting homework failed.'})
+
+@app.route('/Course_platform_s/Mycourse/get/<user_name>', methods=['GET'])
+def course_get_sdata(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM course,studying WHERE studying.student_name = %s and studying.course_id = course.course_id", (user_name,))
+        course_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if course_data:
+            return jsonify(course_data)
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
