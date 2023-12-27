@@ -1,5 +1,11 @@
 import requests
+import random
+import smtplib
 from flask import Flask, request, jsonify, session, redirect
+from werkzeug.utils import secure_filename
+from email.mime.text import MIMEText
+from email.header import Header
+import os
 
 from flask_session import Session
 from operations import functions
@@ -8,7 +14,8 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-app.secret_key = 'sbyp'
+
+code_cache = {}
 
 # @app.before_request
 # def process_request():
@@ -17,7 +24,97 @@ app.secret_key = 'sbyp'
 #         # 将非 API 请求转发到另一个端口
 #         return redirect('http://localhost:8000' + request.path, code=307)
 
+app.config['SECRET_KEY'] = 'sbyp'
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = '465'
+app.config['MAIL_USERNAME'] = '1158398445@qq.com'
+app.config['MAIL_PASSWORD'] = 'qezntdfxrygsfeec'
+app.config['MAIL_USE_SSL'] = True
 
+def send_email(email, code):
+    sender = app.config['MAIL_USERNAME']
+    receivers = [email]
+    nickname = '汤臣一品业主委员会'
+    nickname_encoded = Header(nickname, 'utf-8').encode()
+
+    # 构建 From 字段
+    from_email = app.config['MAIL_USERNAME']
+    from_header = f'{nickname_encoded} <{from_email}>'  # From 字段形如： "昵称" <邮箱地址>
+
+    # 构建邮件内容
+    message = MIMEText('您的验证码为：' + code, 'plain', 'utf-8')
+    message['From'] = Header(from_header)
+    message['To'] = Header(email, 'utf-8')
+    message['Subject'] = Header('邮箱验证码', 'utf-8')
+    try:
+        smtpObj = smtplib.SMTP_SSL(app.config['MAIL_SERVER'], app.config['MAIL_PORT'])
+        smtpObj.login(sender, app.config['MAIL_PASSWORD'])
+        smtpObj.sendmail(sender, receivers, message.as_string())
+        print("ok")
+        return True
+    except Exception as e:
+        print("邮件发送失败:", str(e))
+    return False
+
+@app.route('/sendcode', methods=['POST'])
+def send_code():
+    data = request.json
+    email = data['email']
+    # check if email exists in the database
+    conn = mysql.connector.connect(host='localhost', user='root', password='20020830wyb2618', database='pa') # 修改为自己的数据库连接信息
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
+    result = cursor.fetchall()
+    if len(result) == 0:
+        return jsonify({'message': '该邮箱未注册'}), 400
+    # generate code and store it in the cache
+    code = str(random.randint(100000, 999999))
+    code_cache[email] = code  # 将验证码保存到全局变量中
+    print(code)     # 我在这里输出一下正确的验证码，这样就不用进邮箱查看了，在后端命令行看看就行
+    # store the code in redis or other caching service
+    # send email
+    if send_email(email, code):
+        return jsonify({'message': '验证码已发送'}), 200
+    else:
+        return jsonify({'message': '验证码发送失败'}), 500
+
+@app.route('/api/login_email', methods=['POST'])
+def login_email():
+    data = request.json
+    email = data['email']
+    code = data['code']
+    # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='20020830wyb2618', database='pa')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
+    result = cursor.fetchall()
+    if len(result) == 0:
+        return jsonify({'message': '该邮箱未注册'}), 400
+    # check if the code is correct
+    # get the code from redis or other caching service
+    correct_code = code_cache.get(email)
+    if correct_code is None:
+        return jsonify({'message': '验证码过期或不存在'}), 400
+    if code != correct_code:
+        return jsonify({'message': '验证码错误'}), 400
+    # login success
+    return jsonify({'message': '登录成功', 'user': {'id': result[0][0], 'username': result[0][1], 'access': result[0][3]}}), 200
+
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    # upload_folder = 'uploads'
+    # if not os.path.exists(upload_folder):
+    #     os.makedirs(upload_folder)
+    if 'file' not in request.files:
+        return 'No file part'
+    file = request.files['file']
+    if file.filename == '':
+        return 'No selected file'
+    if file:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join('C:\\Users\\jiexinXe\\Desktop\\Codefield\\Github\\PAsystem-backend\\uploads', filename))
+        return 'File uploaded successfully'
 
 # 登录相关方法
 @app.route('/api/login', methods=['POST'])
@@ -95,8 +192,8 @@ def get_courses():
     return jsonify(courses)
 
 
-@app.route('/api/user/<user_id>', methods=['GET'])
-def get_user(user_id):
+@app.route('/api/user/<user_name>', methods=['GET'])
+def get_user(user_name):
     try:
         connection = mysql.connector.connect(
             host='localhost',
@@ -105,7 +202,7 @@ def get_user(user_id):
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT username, id, access, email, address FROM users WHERE id = %s", (user_id,))
+        cursor.execute("SELECT username, id, access, email, address FROM users WHERE username = %s", (user_name,))
         user = cursor.fetchone()
         cursor.close()
         connection.close()
@@ -255,9 +352,9 @@ def update_access(user_id):
 ##################
 # 分割线  teacher #
 ##################
-@app.route('/homework_platform/homework_manage/get', methods=['GET'])
+@app.route('/homework_platform/homework_manage/get/<user_name>', methods=['GET'])
 def homework_get_data():
-    username = request.cookies.get('username')
+    username = user_name
     session_info = session.get(username)  # 从前端中获取当前登录用户的用户名
     print(f'homework_platform-get: sesion_info: {session_info}')
     homework_data = functions.get_homework_data('teacher1')
@@ -296,6 +393,65 @@ def data_analysis():
     report = functions.generate_report(data)
     return jsonify({'status': 'success', 'report': report})
 
+@app.route('/teaching_manage/course_manage/get/<user_name>', methods=['GET'])
+def course_get_tdata(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM course WHERE main_teacher = %s", (user_name,))
+        course_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if course_data:
+            return jsonify(course_data)
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/homework_manage/teacher_get/<user_name>', methods=['GET'])
+def get_homeworks(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM homework, users WHERE users.username = %s and users.id = homework.teacher_id", (user_name,))
+        # 打印 SQL 查询语句
+
+        homework_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(homework_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/course_platform_t/student_grade/getStudent/<user_name>', methods=['GET'])
+def get_grades(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM teacher_student_class,users,homework,course WHERE users.id = teacher_student_class.teacher_id AND users.username = %s AND homework.class_code = teacher_student_class.class_id AND course.course_id = teacher_student_class.course_id" ,(user_name,))
+        grades_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(grades_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 ##################
 # 分割线  student #
@@ -308,6 +464,27 @@ def submit_homework():
         return jsonify({'status': 'success', 'message': 'Homework submitted successfully.'})
     else:
         return jsonify({'status': 'failure', 'message': 'submitting homework failed.'})
+
+@app.route('/Course_platform_s/Mycourse/get/<user_name>', methods=['GET'])
+def course_get_sdata(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM course,teacher_student_class,users WHERE users.username = %s and teacher_student_class.course_id = course.course_id AND users.id = teacher_student_class.student_id", (user_name,))
+        course_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if course_data:
+            return jsonify(course_data)
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':
