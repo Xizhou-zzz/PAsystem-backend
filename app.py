@@ -350,6 +350,25 @@ def get_homeworks(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/course_platform_t/student_grade/getStudent/<user_name>', methods=['GET'])
+def get_grades(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM teacher_student_class,users,homework,course WHERE users.id = teacher_student_class.teacher_id AND users.username = %s AND homework.class_code = teacher_student_class.class_id AND course.course_id = teacher_student_class.course_id" ,(user_name,))
+        grades_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(grades_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 ##################
 # 分割线  student #
 ##################
@@ -372,7 +391,7 @@ def course_get_sdata(user_name):
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM course,studying WHERE studying.student_name = %s and studying.course_id = course.course_id", (user_name,))
+        cursor.execute("SELECT * FROM course,teacher_student_class,users WHERE users.username = %s and teacher_student_class.course_id = course.course_id AND users.id = teacher_student_class.student_id", (user_name,))
         course_data = cursor.fetchall()
         cursor.close()
         connection.close()
