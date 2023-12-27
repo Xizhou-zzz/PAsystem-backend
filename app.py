@@ -332,6 +332,23 @@ def course_get_tdata(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/homework_manage/teacher_get/<user_name>', methods=['GET'])
+def get_homeworks(user_name):
+    try:
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+        )
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM homework, users WHERE users.username = %s and users.id = homework.teacher_id", (user_name,))
+        homework_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return jsonify(homework_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 ##################
 # 分割线  student #
