@@ -99,7 +99,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='20020830wyb2618',
+        password='Ys012567',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -116,7 +116,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -145,7 +145,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -200,7 +200,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -227,7 +227,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -247,7 +247,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -343,6 +343,8 @@ def get_homeworks(user_name):
         )
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT * FROM homework, users WHERE users.username = %s and users.id = homework.teacher_id", (user_name,))
+        # 打印 SQL 查询语句
+
         homework_data = cursor.fetchall()
         cursor.close()
         connection.close()
