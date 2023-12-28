@@ -56,7 +56,7 @@ def send_email(email, code):
         print("邮件发送失败:", str(e))
     return False
 
-@app.route('/sendcode', methods=['POST'])
+@app.route('/api/sendcode', methods=['POST'])
 def send_code():
     data = request.json
     email = data['email']
@@ -102,6 +102,38 @@ def login_email():
     #     return jsonify({'message': '验证码错误'}), 400
     # login success
     return jsonify({'message': '登录成功', 'user': {'id': result[0][0], 'username': result[0][1], 'access': result[0][3]}}), 200
+
+@app.route('/api/safetysettings/updatepassword', methods=['PUT'])
+def update_password():
+    data = request.json
+    username = data['username']
+    current_password = data['currentPassword']
+    new_password = data['newPassword']
+
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 获取当前用户的密码
+        cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
+        stored_password = cursor.fetchone()[0]
+        print(stored_password)
+        print(current_password)
+        # 验证当前密码
+        if not stored_password == current_password:
+            return jsonify({'error': 'Current password is incorrect'}), 401
+
+        # 更新密码
+        cursor.execute("UPDATE users SET password = %s WHERE username = %s", (new_password, username))
+        conn.commit()
+
+        return jsonify({'message': 'Password updated successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/api/upload', methods=['POST'])
@@ -379,14 +411,14 @@ def grade_delete():
     return True
 
 
-@app.route('/Homework_platform/homework_manage/add', methods=['POST'])
-def add_homework():
-    data = request.json
-    status = functions.add_homework(data)
-    if status:
-        return jsonify({'status': 'success', 'message': 'Homework added successfully.'})
-    else:
-        return jsonify({'status': 'failure', 'message': 'adding homework failed.'})
+# @app.route('/Homework_platform/homework_manage/add', methods=['POST'])
+# def add_homework():
+#     data = request.json
+#     status = functions.add_homework(data)
+#     if status:
+#         return jsonify({'status': 'success', 'message': 'Homework added successfully.'})
+#     else:
+#         return jsonify({'status': 'failure', 'message': 'adding homework failed.'})
 
 
 @app.route('/Homework_platform/homework_manage/data_analysis', methods=['GET'])
@@ -401,7 +433,7 @@ def course_get_tdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -422,7 +454,7 @@ def get_homeworks(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -437,13 +469,89 @@ def get_homeworks(user_name):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/homework_manage/addhomework/<user_name>', methods=['POST'])
+def add_homework(user_name):
+    data = request.json
+    course_name = data['courseName']
+    title = data['title']
+    due_date = data['dueDate']
+    description = data['description']
+
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 获取教师ID
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        teacher_id = cursor.fetchone()[0]
+
+        # 获取course_id和class_id
+        cursor.execute(
+            "SELECT DISTINCT course.course_id, class_id FROM teacher_student_class, course WHERE teacher_id = %s AND course.course_id = teacher_student_class.course_id AND course.course_name = %s",
+            (teacher_id, course_name))
+        result = cursor.fetchone()
+        if result:
+            course_id, class_id = result
+
+            # 插入homework表
+            query = "INSERT INTO homework (class_code, course_name, title, due_date, assignment_description, teacher_id, course_code) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(query, (class_id, course_name, title, due_date, description, teacher_id, course_id,))
+            conn.commit()
+
+            # 获取homework_id
+            homework_id = cursor.lastrowid
+
+            # 获取所有相关学生ID
+            cursor.execute("SELECT student_id FROM teacher_student_class WHERE class_id = %s", (class_id,))
+            student_ids = cursor.fetchall()
+
+            # 为每个学生插入记录
+            query = "INSERT INTO student_homework (student_id, teacher_id, course_id, class_id, homework_id, do_state, correction_state, grade) VALUES (%s, %s, %s, %s, %s, 'False', 'False', '-1')"
+            for student_id in student_ids:
+                cursor.execute(query, (student_id[0], teacher_id, course_id, class_id, homework_id,))
+            conn.commit()
+            return jsonify({'message': 'Homework added successfully'}), 200
+        else:
+            return jsonify({'error': 'Unable to find course or class ID'}), 404
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/homework_manage/deletehomework/<course_name>/<title>', methods=['DELETE'])
+def delete_homework(course_name, title):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 删除 student_homework 表中的记录
+        cursor.execute(
+            "DELETE FROM student_homework WHERE homework_id IN (SELECT hid FROM homework WHERE course_name = %s AND title = %s)",
+            (course_name, title))
+
+        # 删除 homework 表中的记录
+        cursor.execute("DELETE FROM homework WHERE course_name = %s AND title = %s", (course_name, title))
+
+        conn.commit()
+        return jsonify({'message': 'Homework deleted successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/api/course_platform_t/student_grade/getStudent/<user_name>', methods=['GET'])
 def get_grades(user_name):
     try:
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -473,7 +581,7 @@ def course_get_sdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -488,6 +596,41 @@ def course_get_sdata(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/course_platform_s/mission/gethomework/<user_name>', methods=['GET'])
+def get_homework(user_name):
+    # 连接数据库并查询数据
+    conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+    )
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM student_homework,users,homework WHERE homework.course_code = student_homework.course_id AND users.username = %s AND users.id = student_homework.student_id AND homework.hid = student_homework.homework_id", (user_name,))
+    homeworks = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    # 格式化数据并返回
+    return jsonify(homeworks)
+
+@app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
+def get_mission(user_name):
+    # 连接数据库并查询数据
+    conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+    )
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM mission")
+    missions = cursor.fetchall()
+    conn.close()
+
+    # 格式化数据并返回
+    return jsonify(missions)
 
 if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
