@@ -311,7 +311,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -401,7 +401,7 @@ def course_get_tdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -422,7 +422,7 @@ def get_homeworks(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -446,24 +446,37 @@ def add_homework(user_name):
     description = data['description']
 
     try:
-        # 连接数据库逻辑...
         conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
-        # 首先根据教师名称获取id
+
+        # 获取教师ID
         cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
         teacher_id = cursor.fetchone()[0]
 
-        # 使用教师id获取course_id和class_id
+        # 获取course_id和class_id
         cursor.execute(
             "SELECT DISTINCT course.course_id, class_id FROM teacher_student_class, course WHERE teacher_id = %s AND course.course_id = teacher_student_class.course_id AND course.course_name = %s",
-            (teacher_id, course_name,))
+            (teacher_id, course_name))
         result = cursor.fetchone()
         if result:
             course_id, class_id = result
 
-            # 现在插入homework表
+            # 插入homework表
             query = "INSERT INTO homework (class_code, course_name, title, due_date, assignment_description, teacher_id, course_code) VALUES (%s, %s, %s, %s, %s, %s, %s)"
             cursor.execute(query, (class_id, course_name, title, due_date, description, teacher_id, course_id,))
+            conn.commit()
+
+            # 获取homework_id
+            homework_id = cursor.lastrowid
+
+            # 获取所有相关学生ID
+            cursor.execute("SELECT student_id FROM teacher_student_class WHERE class_id = %s", (class_id,))
+            student_ids = cursor.fetchall()
+
+            # 为每个学生插入记录
+            query = "INSERT INTO student_homework (student_id, teacher_id, course_id, class_id, homework_id, do_state, correction_state, grade) VALUES (%s, %s, %s, %s, %s, 'False', 'False', '-1')"
+            for student_id in student_ids:
+                cursor.execute(query, (student_id[0], teacher_id, course_id, class_id, homework_id,))
             conn.commit()
             return jsonify({'message': 'Homework added successfully'}), 200
         else:
@@ -475,13 +488,38 @@ def add_homework(user_name):
         cursor.close()
         conn.close()
 
+
+@app.route('/api/homework_manage/deletehomework/<course_name>/<title>', methods=['DELETE'])
+def delete_homework(course_name, title):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 删除 student_homework 表中的记录
+        cursor.execute(
+            "DELETE FROM student_homework WHERE homework_id IN (SELECT hid FROM homework WHERE course_name = %s AND title = %s)",
+            (course_name, title))
+
+        # 删除 homework 表中的记录
+        cursor.execute("DELETE FROM homework WHERE course_name = %s AND title = %s", (course_name, title))
+
+        conn.commit()
+        return jsonify({'message': 'Homework deleted successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.route('/api/course_platform_t/student_grade/getStudent/<user_name>', methods=['GET'])
 def get_grades(user_name):
     try:
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -511,7 +549,7 @@ def course_get_sdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
