@@ -111,7 +111,7 @@ def update_password():
     new_password = data['newPassword']
 
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
         cursor = conn.cursor()
 
         # 获取当前用户的密码
@@ -433,7 +433,7 @@ def course_get_tdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -454,7 +454,7 @@ def get_homeworks(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -478,7 +478,7 @@ def add_homework(user_name):
     description = data['description']
 
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
         cursor = conn.cursor()
 
         # 获取教师ID
@@ -524,7 +524,7 @@ def add_homework(user_name):
 @app.route('/api/homework_manage/deletehomework/<course_name>/<title>', methods=['DELETE'])
 def delete_homework(course_name, title):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
         cursor = conn.cursor()
 
         # 删除 student_homework 表中的记录
@@ -551,7 +551,7 @@ def get_grades(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -581,7 +581,7 @@ def course_get_sdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -603,7 +603,7 @@ def get_homework(user_name):
     conn = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
     )
     cursor = conn.cursor(dictionary=True)
@@ -621,7 +621,7 @@ def get_mission(user_name):
     conn = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
     )
     cursor = conn.cursor()
