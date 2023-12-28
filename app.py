@@ -281,6 +281,32 @@ def update_user():
 ################
 # 分割线  admin #
 ################
+
+@app.route('/api/addcourse', methods=['POST'])
+def add_course():
+    data = request.json
+    course_name = data['courseName']
+    course_id = data['courseId']
+    main_teacher = data['mainTeacher']
+    teaching_classroom = data['teachingClassrom']
+    teaching_time = data['teachingTime']
+
+    # 连接数据库并执行插入操作
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+    cursor = conn.cursor()
+
+    try:
+        query = "INSERT INTO course (course_name, course_id, main_teacher, teaching_room, teaching_time) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(query, (course_name, course_id, main_teacher, teaching_classroom, teaching_time))
+        conn.commit()
+        return jsonify({'message': 'Course added successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/teaching_manage/course_manage/get', methods=['GET'])
 def course_get_data():
     username = request.cookies.get('username')
@@ -467,6 +493,85 @@ def get_homeworks(user_name):
         return jsonify(homework_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/course_manage/deletecourse/<course_id>', methods=['DELETE'])
+def delete_course(course_id):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 删除课程
+        cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
+        conn.commit()
+
+        return jsonify({'message': 'Course deleted successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/course_manage/editcourse/<course_id>', methods=['PUT'])
+def edit_course(course_id):
+    data = request.json
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 更新课程信息
+        cursor.execute("UPDATE course SET course_name = %s, main_teacher = %s, teaching_room = %s, teaching_time = %s WHERE course_id = %s",
+                      (data['course_name'], data['main_teacher'], data['teaching_room'], data['teaching_time'], course_id))
+        conn.commit()
+
+        return jsonify({'message': 'Course updated successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/people_management/get_student_courses/<student_id>', methods=['GET'])
+def get_student_courses(student_id):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        query = """
+        SELECT course.course_name 
+        FROM teacher_student_class 
+        JOIN course ON teacher_student_class.course_id = course.course_id 
+        WHERE teacher_student_class.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+        courses = cursor.fetchall()
+
+        return jsonify({'courses': [course[0] for course in courses]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/people_management/get_all_courses', methods=['GET'])
+def get_all_courses():
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='YourPassword', database='pa')
+        cursor = conn.cursor()
+
+        query = "SELECT course_name FROM course"
+        cursor.execute(query)
+        courses = cursor.fetchall()
+
+        return jsonify({'courses': [course[0] for course in courses]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/api/homework_manage/addhomework/<user_name>', methods=['POST'])
