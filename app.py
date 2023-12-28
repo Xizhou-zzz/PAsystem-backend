@@ -61,7 +61,7 @@ def send_code():
     data = request.json
     email = data['email']
     # check if email exists in the database
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa') # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa') # 修改为自己的数据库连接信息
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
     result = cursor.fetchall()
@@ -85,7 +85,7 @@ def login_email():
     email = data['email']
     code = data['code']
     # 修改为自己的数据库连接信息
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
     result = cursor.fetchall()
@@ -214,7 +214,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='124356tbw',
+        password='Ys012567',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -232,7 +232,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -261,7 +261,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -342,7 +342,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -369,7 +369,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -389,7 +389,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -719,6 +719,48 @@ def get_homework(user_name):
 
     # 格式化数据并返回
     return jsonify(homeworks)
+
+@app.route('/api/welcome_s/getUnsubmittedCourses/<user_name>', methods=['GET'])
+def get_unsubmitted_course_count(user_name):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 首先根据user_name获取user_id
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        user_id = cursor.fetchone()[0]
+
+        # 查询student_homework中未提交作业的数量
+        cursor.execute("SELECT COUNT(*) FROM student_homework WHERE student_id = %s AND do_state = 'False'", (user_id,))
+        count = cursor.fetchone()[0]
+        print(count)
+        return jsonify({'count': count}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/welcome_s/getPendingCourseCount/<user_name>', methods=['GET'])
+def get_pending_course_count(user_name):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 首先根据user_name获取user_id
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        user_id = cursor.fetchone()[0]
+
+        # 查询student_homework中待批改作业的课程门数
+        cursor.execute("SELECT COUNT(DISTINCT course_id) FROM student_homework WHERE student_id = %s AND correction_state = '待批改'", (user_id,))
+        count = cursor.fetchone()[0]
+
+        return jsonify({'count': count}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
 def get_mission(user_name):

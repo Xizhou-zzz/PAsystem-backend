@@ -7,7 +7,7 @@ class Database:
         self.conn = pymysql.connect(
             host="localhost",
             user="root",
-            password="124356tbw",
+            password="Ys012567",
             database="pa"
         )
         self.cursor = self.conn.cursor()
