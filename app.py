@@ -138,18 +138,15 @@ def update_password():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    # upload_folder = 'uploads'
-    # if not os.path.exists(upload_folder):
-    #     os.makedirs(upload_folder)
-    if 'file' not in request.files:
-        return 'No file part'
-    file = request.files['file']
-    if file.filename == '':
-        return 'No selected file'
-    if file:
-        filename = secure_filename(file.filename)
-        file.save(os.path.join('C:\\Users\\jiexinXe\\Desktop\\Codefield\\Github\\PAsystem-backend\\uploads', filename))
-        return 'File uploaded successfully'
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'message': 'No file found'}), 400
+
+    filename = file.filename
+    file_path = os.path.join('uploads', filename)
+    file.save(file_path)
+
+    return jsonify({'message': 'File uploaded successfully', 'path': file_path})
 
 # 登录相关方法
 @app.route('/api/login', methods=['POST'])
@@ -671,14 +668,50 @@ def get_grades(user_name):
 ##################
 # 分割线  student #
 ##################
-@app.route('/Homework_platform/homework_submission/submit', methods=['POST'])
+# @app.route('/Homework_platform/homework_submission/submit', methods=['POST'])
+# def submit_homework():
+#     data = request.json
+#     status = functions.submit_homework(data)
+#     if status:
+#         return jsonify({'status': 'success', 'message': 'Homework submitted successfully.'})
+#     else:
+#         return jsonify({'status': 'failure', 'message': 'submitting homework failed.'})
+
+@app.route('/api/submit_homework', methods=['POST'])
 def submit_homework():
     data = request.json
-    status = functions.submit_homework(data)
-    if status:
-        return jsonify({'status': 'success', 'message': 'Homework submitted successfully.'})
-    else:
-        return jsonify({'status': 'failure', 'message': 'submitting homework failed.'})
+    user_name = data['userName']
+    file_path = data['filePath']
+    file_name = data['fileName']
+    file_data = data['fileData']
+    hid = data['homeworkId']
+
+    # 连接数据库
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+    cursor = conn.cursor()
+
+    try:
+        # 插入文件信息到assignment_files表
+        insert_query = "INSERT INTO assignment_files (file_path, file_name, file_data, tors) VALUES (%s, %s, %s, 's')"
+        cursor.execute(insert_query, (file_path, file_name, file_data))
+        conn.commit()
+
+        # 获取刚插入的fid
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        fid = cursor.fetchone()[0]
+
+        # 更新student_homework表
+        update_query = "UPDATE student_homework SET do_state = 'True', fid = %s WHERE student_id = (SELECT id FROM users WHERE username = %s) AND homework_id = %s"
+        cursor.execute(update_query, (fid, user_name, hid,))
+        conn.commit()
+
+        return jsonify({'message': '作业提交成功'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/Course_platform_s/Mycourse/get/<user_name>', methods=['GET'])
 def course_get_sdata(user_name):
@@ -764,20 +797,45 @@ def get_pending_course_count(user_name):
 
 @app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
 def get_mission(user_name):
-    # 连接数据库并查询数据
-    conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='Ys012567',
-            database='pa'
-    )
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM mission")
-    missions = cursor.fetchall()
-    conn.close()
 
-    # 格式化数据并返回
-    return jsonify(missions)
+    try:
+        # 获取用户ID
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        user_result = cursor.fetchone()
+        if not user_result:
+            return jsonify({'message': 'User not found'}), 404
+        user_id = user_result[0]  # 获取id值
+
+        # 使用用户ID获取任务信息
+        cursor.execute("SELECT mid FROM student_mission WHERE student_id = %s", (user_id,))
+        mid_result = cursor.fetchone()
+        if not mid_result:
+            return jsonify({'message': 'Mission not found for this user'}), 404
+        mid = mid_result[0]  # 获取mid值
+
+        # 获取student_mission的详细信息
+        cursor.execute("SELECT homework_id FROM mission WHERE mid = %s", (mid,))
+        hid_result = cursor.fetchone()
+        if not hid_result:
+            return jsonify({'message': 'Homework ID not found for this mission'}), 404
+        hid = hid_result[0]  # 获取hid值
+
+        # 获取homework的详细信息
+        cursor.execute("SELECT * FROM homework WHERE hid = %s", (hid,))
+        course_mission = cursor.fetchall()
+
+        return jsonify(course_mission)
+
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @app.route('/api/homework_platform/homework_manage/postdata',methods=['POST'])
 def assign():

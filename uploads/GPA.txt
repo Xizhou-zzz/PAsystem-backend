@@ -1,0 +1,105 @@
+import pandas as pd
+
+# 从文件中读取数据
+grade_course = pd.read_csv('grade1.csv')
+grade_course_df = pd.DataFrame(data=grade_course.values, columns=grade_course.columns)
+
+# 定义一个函数用于根据成绩计算课程绩点
+def GP(score):
+    # 转化为整形，如果不是整形的话就往下进行
+    try:
+        score = int(score)
+    except ValueError:
+        pass
+
+    # 如果是整性的，进行成绩分析
+    if isinstance(score, int):
+        if 90 <= score <= 100:
+            return 4.0
+        elif 85 <= score <= 89:
+            return 3.7
+        elif 81 <= score <= 84:
+            return 3.3
+        elif 78 <= score <= 80:
+            return 3
+        elif 75 <= score <= 77:
+            return 2.7
+        elif 71 <= score <= 74:
+            return 2.3
+        elif 68 <= score <= 70:
+            return 2.0
+        elif 65 <= score <= 67:
+            return 1.7
+        elif 61 <= score <= 64:
+            return 1.3
+        elif score == 60:
+            return 1.0
+        elif 0 <= score < 60:
+            return 0
+        else:
+            return False
+    # 如果不是整形，按照Hash分配
+    else:
+        if score == "A":
+            return 4.0
+        elif score == "A-":
+            return 3.7
+        elif score == "B+":
+            return 3.3
+        elif score == "B":
+            return 3
+        elif score == "B-":
+            return 2.7
+        elif score == "C+":
+            return 2.3
+        elif score == "C":
+            return 2.0
+        elif score == "C-":
+            return 1.7
+        elif score == "D+":
+            return 1.3
+        elif score == "D":
+            return 1.0
+        elif score == "F":
+            return 0
+        else:
+            return False
+        # 被注释的部分为一开始写的，可以运行但不太好画图，所以改成了现在的
+        # grade_map = {
+        #     "A": 4.0, "A-": 3.7, "B+": 3.3, "B": 3, "B-": 2.7,
+        #     "C+": 2.3, "C": 2.0, "C-": 1.7, "D+": 1.3, "D": 1.0
+        # }
+        # return grade_map.get(score, 0)
+
+# 存储每门课程的绩点、学分和课程学分绩点
+course_name = []
+course_gpas = []
+total_credit_points = 0
+total_credits = 0
+
+def GPA(course_name, course_gpas, total_credit_points, total_credits):
+    for index, row in grade_course_df.iterrows():
+        course_name, credit, score = row['name'], row['credit'], row['score']
+        gpa = GP(score)
+        credit_points = gpa * credit
+        total_credit_points += credit_points
+        total_credits += credit
+        course_gpas.append((course_name, gpa, credit, credit_points))
+    # 计算平均学分绩点
+    average_gpa = total_credit_points / total_credits if total_credits > 0 else 0
+    return average_gpa
+
+
+def output():
+    # 输出每门课程的绩点、学分和课程学分绩点
+    print("{:<7}{:<5}{:<8}{:<15}".format("课程绩点", "学分", "课程学分绩点", "课程名"))
+    for name, gpa, credit, credit_points in course_gpas:
+       print("{:<9.1f}{:<9}{:<8.2f}{:<15}".format(gpa, credit, credit_points, name))
+
+# 计算平均学分绩点
+average_gpa = GPA(course_name, course_gpas, total_credit_points, total_credits)
+# 输出结果
+output()
+
+# 输出平均学分绩点
+print("平均学分绩点 =", "{:.2f}".format(average_gpa), end='')
