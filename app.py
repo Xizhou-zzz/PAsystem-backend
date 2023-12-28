@@ -399,7 +399,7 @@ def course_get_tdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -420,7 +420,7 @@ def get_homeworks(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -441,7 +441,7 @@ def get_grades(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -471,7 +471,7 @@ def course_get_sdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
