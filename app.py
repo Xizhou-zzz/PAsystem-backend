@@ -61,7 +61,7 @@ def send_code():
     data = request.json
     email = data['email']
     # check if email exists in the database
-    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa') # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa') # 修改为自己的数据库连接信息
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
     result = cursor.fetchall()
@@ -85,7 +85,7 @@ def login_email():
     email = data['email']
     code = data['code']
     # 修改为自己的数据库连接信息
-    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
     result = cursor.fetchall()
@@ -214,7 +214,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='Ys012567',
+        password='124356tbw',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -232,7 +232,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -261,7 +261,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor()
@@ -342,7 +342,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -369,7 +369,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -389,7 +389,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='Ys012567',
+            password='124356tbw',
             database='pa'
         )
         cursor = connection.cursor()
