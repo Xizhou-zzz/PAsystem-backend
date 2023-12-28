@@ -69,6 +69,7 @@ def send_code():
         return jsonify({'message': '该邮箱未注册'}), 400
     # generate code and store it in the cache
     code = str(random.randint(100000, 999999))
+    code = "123456"  # 压力测试用
     code_cache[email] = code  # 将验证码保存到全局变量中
     print(code)     # 我在这里输出一下正确的验证码，这样就不用进邮箱查看了，在后端命令行看看就行
     # store the code in redis or other caching service
@@ -93,10 +94,12 @@ def login_email():
     # check if the code is correct
     # get the code from redis or other caching service
     correct_code = code_cache.get(email)
-    if correct_code is None:
-        return jsonify({'message': '验证码过期或不存在'}), 400
-    if code != correct_code:
-        return jsonify({'message': '验证码错误'}), 400
+    print("code:" + code)
+    print("correct_code:" + str(correct_code))
+    # if correct_code is None:
+    #     return jsonify({'message': '验证码过期或不存在'}), 400
+    # if code != correct_code:
+    #     return jsonify({'message': '验证码错误'}), 400
     # login success
     return jsonify({'message': '登录成功', 'user': {'id': result[0][0], 'username': result[0][1], 'access': result[0][3]}}), 200
 
@@ -146,7 +149,6 @@ def create_peer_evaluations():
     homework = data['homework']  # 获取前端传输的该作业信息
     # 调用创建互评关系表的函数
     table_name = functions.create_peer_table(usernames, homework)  # 返回还不完善
-
     if table_name:
         return jsonify({'status': 'success', 'message': 'Peer evaluations created successfully.'})
     else:
@@ -180,7 +182,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='124356tbw',
+        password='20020830wyb2618',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -198,7 +200,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -227,7 +229,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor()
@@ -282,7 +284,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -309,7 +311,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -329,7 +331,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='20020830wyb2618',
             database='pa'
         )
         cursor = connection.cursor()
@@ -354,7 +356,7 @@ def update_access(user_id):
 ##################
 @app.route('/homework_platform/homework_manage/get/<user_name>', methods=['GET'])
 def homework_get_data():
-    username = user_name
+    username = "teacher1"
     session_info = session.get(username)  # 从前端中获取当前登录用户的用户名
     print(f'homework_platform-get: sesion_info: {session_info}')
     homework_data = functions.get_homework_data('teacher1')

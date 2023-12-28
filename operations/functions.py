@@ -167,9 +167,8 @@ def create_peer_table(usernames, homework):
         db.insert(table_name, (reviewer, reviewee))
 
     df = db.select(table_name)
-    print(df)  # 打印表以供查看
     # 返回尚不完善
-    return None
+    return table_name
 
 
 def add_homework(data):
