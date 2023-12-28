@@ -56,12 +56,12 @@ def send_email(email, code):
         print("邮件发送失败:", str(e))
     return False
 
-@app.route('/sendcode', methods=['POST'])
+@app.route('/api/sendcode', methods=['POST'])
 def send_code():
     data = request.json
     email = data['email']
     # check if email exists in the database
-    conn = mysql.connector.connect(host='localhost', user='root', password='20020830wyb2618', database='pa') # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa') # 修改为自己的数据库连接信息
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
     result = cursor.fetchall()
@@ -84,7 +84,7 @@ def login_email():
     email = data['email']
     code = data['code']
     # 修改为自己的数据库连接信息
-    conn = mysql.connector.connect(host='localhost', user='root', password='20020830wyb2618', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
     result = cursor.fetchall()
@@ -376,14 +376,14 @@ def grade_delete():
     return True
 
 
-@app.route('/Homework_platform/homework_manage/add', methods=['POST'])
-def add_homework():
-    data = request.json
-    status = functions.add_homework(data)
-    if status:
-        return jsonify({'status': 'success', 'message': 'Homework added successfully.'})
-    else:
-        return jsonify({'status': 'failure', 'message': 'adding homework failed.'})
+# @app.route('/Homework_platform/homework_manage/add', methods=['POST'])
+# def add_homework():
+#     data = request.json
+#     status = functions.add_homework(data)
+#     if status:
+#         return jsonify({'status': 'success', 'message': 'Homework added successfully.'})
+#     else:
+#         return jsonify({'status': 'failure', 'message': 'adding homework failed.'})
 
 
 @app.route('/Homework_platform/homework_manage/data_analysis', methods=['GET'])
@@ -433,6 +433,44 @@ def get_homeworks(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/homework_manage/addhomework/<user_name>', methods=['POST'])
+def add_homework(user_name):
+    data = request.json
+    course_name = data['courseName']
+    title = data['title']
+    due_date = data['dueDate']
+    description = data['description']
+
+    try:
+        # 连接数据库逻辑...
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+        # 首先根据教师名称获取id
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        teacher_id = cursor.fetchone()[0]
+
+        # 使用教师id获取course_id和class_id
+        cursor.execute(
+            "SELECT DISTINCT course.course_id, class_id FROM teacher_student_class, course WHERE teacher_id = %s AND course.course_id = teacher_student_class.course_id AND course.course_name = %s",
+            (teacher_id, course_name,))
+        result = cursor.fetchone()
+        if result:
+            course_id, class_id = result
+
+            # 现在插入homework表
+            query = "INSERT INTO homework (class_code, course_name, title, due_date, assignment_description, teacher_id, course_code) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            cursor.execute(query, (class_id, course_name, title, due_date, description, teacher_id, course_id,))
+            conn.commit()
+            return jsonify({'message': 'Homework added successfully'}), 200
+        else:
+            return jsonify({'error': 'Unable to find course or class ID'}), 404
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/course_platform_t/student_grade/getStudent/<user_name>', methods=['GET'])
 def get_grades(user_name):
@@ -485,6 +523,41 @@ def course_get_sdata(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/course_platform_s/mission/gethomework/<user_name>', methods=['GET'])
+def get_homework(user_name):
+    # 连接数据库并查询数据
+    conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+    )
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM student_homework,users,homework WHERE homework.course_code = student_homework.course_id AND users.username = %s AND users.id = student_homework.student_id AND homework.hid = student_homework.homework_id", (user_name,))
+    homeworks = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    # 格式化数据并返回
+    return jsonify(homeworks)
+
+@app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
+def get_mission(user_name):
+    # 连接数据库并查询数据
+    conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Ys012567',
+            database='pa'
+    )
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM mission")
+    missions = cursor.fetchall()
+    conn.close()
+
+    # 格式化数据并返回
+    return jsonify(missions)
 
 if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
