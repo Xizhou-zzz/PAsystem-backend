@@ -61,7 +61,7 @@ def send_code():
     data = request.json
     email = data['email']
     # check if email exists in the database
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa') # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa') # 修改为自己的数据库连接信息
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
     result = cursor.fetchall()
@@ -85,7 +85,7 @@ def login_email():
     email = data['email']
     code = data['code']
     # 修改为自己的数据库连接信息
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
     result = cursor.fetchall()
@@ -214,7 +214,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='124356tbw',
+        password='Ys012567',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -232,7 +232,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -261,7 +261,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -281,6 +281,32 @@ def update_user():
 ################
 # 分割线  admin #
 ################
+
+@app.route('/api/addcourse', methods=['POST'])
+def add_course():
+    data = request.json
+    course_name = data['courseName']
+    course_id = data['courseId']
+    main_teacher = data['mainTeacher']
+    teaching_classroom = data['teachingClassrom']
+    teaching_time = data['teachingTime']
+
+    # 连接数据库并执行插入操作
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+    cursor = conn.cursor()
+
+    try:
+        query = "INSERT INTO course (course_name, course_id, main_teacher, teaching_room, teaching_time) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(query, (course_name, course_id, main_teacher, teaching_classroom, teaching_time))
+        conn.commit()
+        return jsonify({'message': 'Course added successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/teaching_manage/course_manage/get', methods=['GET'])
 def course_get_data():
     username = request.cookies.get('username')
@@ -316,7 +342,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -343,7 +369,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -363,7 +389,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -467,6 +493,85 @@ def get_homeworks(user_name):
         return jsonify(homework_data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/course_manage/deletecourse/<course_id>', methods=['DELETE'])
+def delete_course(course_id):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 删除课程
+        cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
+        conn.commit()
+
+        return jsonify({'message': 'Course deleted successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/course_manage/editcourse/<course_id>', methods=['PUT'])
+def edit_course(course_id):
+    data = request.json
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 更新课程信息
+        cursor.execute("UPDATE course SET course_name = %s, main_teacher = %s, teaching_room = %s, teaching_time = %s WHERE course_id = %s",
+                      (data['course_name'], data['main_teacher'], data['teaching_room'], data['teaching_time'], course_id))
+        conn.commit()
+
+        return jsonify({'message': 'Course updated successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/people_management/get_student_courses/<student_id>', methods=['GET'])
+def get_student_courses(student_id):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        query = """
+        SELECT course.course_name 
+        FROM teacher_student_class 
+        JOIN course ON teacher_student_class.course_id = course.course_id 
+        WHERE teacher_student_class.student_id = %s
+        """
+        cursor.execute(query, (student_id,))
+        courses = cursor.fetchall()
+
+        return jsonify({'courses': [course[0] for course in courses]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/people_management/get_all_courses', methods=['GET'])
+def get_all_courses():
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='YourPassword', database='pa')
+        cursor = conn.cursor()
+
+        query = "SELECT course_name FROM course"
+        cursor.execute(query)
+        courses = cursor.fetchall()
+
+        return jsonify({'courses': [course[0] for course in courses]}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/api/homework_manage/addhomework/<user_name>', methods=['POST'])
@@ -614,6 +719,48 @@ def get_homework(user_name):
 
     # 格式化数据并返回
     return jsonify(homeworks)
+
+@app.route('/api/welcome_s/getUnsubmittedCourses/<user_name>', methods=['GET'])
+def get_unsubmitted_course_count(user_name):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 首先根据user_name获取user_id
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        user_id = cursor.fetchone()[0]
+
+        # 查询student_homework中未提交作业的数量
+        cursor.execute("SELECT COUNT(*) FROM student_homework WHERE student_id = %s AND do_state = 'False'", (user_id,))
+        count = cursor.fetchone()[0]
+        print(count)
+        return jsonify({'count': count}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/api/welcome_s/getPendingCourseCount/<user_name>', methods=['GET'])
+def get_pending_course_count(user_name):
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 首先根据user_name获取user_id
+        cursor.execute("SELECT id FROM users WHERE username = %s", (user_name,))
+        user_id = cursor.fetchone()[0]
+
+        # 查询student_homework中待批改作业的课程门数
+        cursor.execute("SELECT COUNT(DISTINCT course_id) FROM student_homework WHERE student_id = %s AND correction_state = '待批改'", (user_id,))
+        count = cursor.fetchone()[0]
+
+        return jsonify({'count': count}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
 def get_mission(user_name):
