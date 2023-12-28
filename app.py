@@ -103,6 +103,38 @@ def login_email():
     # login success
     return jsonify({'message': '登录成功', 'user': {'id': result[0][0], 'username': result[0][1], 'access': result[0][3]}}), 200
 
+@app.route('/api/safetysettings/updatepassword', methods=['PUT'])
+def update_password():
+    data = request.json
+    username = data['username']
+    current_password = data['currentPassword']
+    new_password = data['newPassword']
+
+    try:
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+        cursor = conn.cursor()
+
+        # 获取当前用户的密码
+        cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
+        stored_password = cursor.fetchone()[0]
+        print(stored_password)
+        print(current_password)
+        # 验证当前密码
+        if not stored_password == current_password:
+            return jsonify({'error': 'Current password is incorrect'}), 401
+
+        # 更新密码
+        cursor.execute("UPDATE users SET password = %s WHERE username = %s", (new_password, username))
+        conn.commit()
+
+        return jsonify({'message': 'Password updated successfully'}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -182,7 +214,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='20020830wyb2618',
+        password='Ys012567',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -200,7 +232,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -229,7 +261,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -284,7 +316,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -331,7 +363,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='20020830wyb2618',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
