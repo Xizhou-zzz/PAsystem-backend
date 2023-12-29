@@ -1,7 +1,7 @@
 import requests
 import random
 import smtplib
-from flask import Flask, request, jsonify, session, redirect
+from flask import Flask, request, jsonify, session, redirect, send_from_directory
 from werkzeug.utils import secure_filename
 from email.mime.text import MIMEText
 from email.header import Header
@@ -491,6 +491,21 @@ def get_homeworks(user_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/homework_manage/get_homework_by_course/<course_name>', methods=['GET'])
+def get_homework_by_course(course_name):
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT title FROM homework WHERE course_name = %s", (course_name,))
+        homeworks = cursor.fetchall()
+        return jsonify(homeworks)
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/course_manage/deletecourse/<course_id>', methods=['DELETE'])
 def delete_course(course_id):
@@ -874,7 +889,11 @@ def assign():
 
     return jsonify({'message': '数据已成功提交'}), 200
 
-
+@app.route('/download/<filename>')
+def download_file(filename):
+    # 假设文件存储在服务器的 'uploads' 目录
+    directory = 'uploads'
+    return send_from_directory(directory, filename, as_attachment=True)
 
 
 if __name__ == '__main__':
