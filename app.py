@@ -160,7 +160,7 @@ def login():
     valid, access = functions.check(username, password)
 
     # 1:许可，0:不存在，-1:密码错误
-    if valid == 1:
+    if valid == 1 and access != 'assistant':
         session['username'] = username
         res = jsonify({'status': 'ok', 'access': access, 'cookie': username})
         return res
@@ -168,6 +168,8 @@ def login():
         return jsonify({'status': 'error', 'message': 'User does not exist.'})
     elif valid == -1:
         return jsonify({'status': 'error', 'message': 'Password is error.'})
+    elif access == 'assistant':
+        return jsonify({'status': 'erro', 'message': '黑名单用户无权限！.'})
 
 
 # 此函数用来创建一个作业的"互评关系"表，由老师执行“开启互评”触发
