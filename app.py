@@ -61,7 +61,7 @@ def send_code():
     data = request.json
     email = data['email']
     # check if email exists in the database
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa') # 修改为自己的数据库连接信息
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa') # 修改为自己的数据库连接信息
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))
     result = cursor.fetchall()
@@ -85,7 +85,7 @@ def login_email():
     email = data['email']
     code = data['code']
     # 修改为自己的数据库连接信息
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE email=%s', (email,))      # check if email exists in the database
     result = cursor.fetchall()
@@ -111,7 +111,7 @@ def update_password():
     new_password = data['newPassword']
 
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 获取当前用户的密码
@@ -211,7 +211,7 @@ def get_courses():
     connection = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='124356tbw',
+        password='Ys012567',
         database='pa'
     )
     cursor = connection.cursor(dictionary=True)
@@ -229,7 +229,7 @@ def get_user(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -258,7 +258,7 @@ def update_user():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -289,7 +289,7 @@ def add_course():
     teaching_time = data['teachingTime']
 
     # 连接数据库并执行插入操作
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
 
     try:
@@ -339,7 +339,7 @@ def get_people():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -366,7 +366,7 @@ def get_users():
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -386,7 +386,7 @@ def update_access(user_id):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor()
@@ -456,7 +456,7 @@ def course_get_tdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -477,7 +477,7 @@ def get_homeworks(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -510,7 +510,7 @@ def get_homework_by_course(course_name):
 @app.route('/api/course_manage/deletecourse/<course_id>', methods=['DELETE'])
 def delete_course(course_id):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 删除课程
@@ -529,7 +529,7 @@ def delete_course(course_id):
 def edit_course(course_id):
     data = request.json
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 更新课程信息
@@ -548,7 +548,7 @@ def edit_course(course_id):
 @app.route('/api/people_management/get_student_courses/<student_id>', methods=['GET'])
 def get_student_courses(student_id):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         query = """
@@ -595,7 +595,7 @@ def add_homework(user_name):
     description = data['description']
 
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 获取教师ID
@@ -641,7 +641,7 @@ def add_homework(user_name):
 @app.route('/api/homework_manage/deletehomework/<course_name>/<title>', methods=['DELETE'])
 def delete_homework(course_name, title):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 删除 student_homework 表中的记录
@@ -668,7 +668,7 @@ def get_grades(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -702,7 +702,7 @@ def submit_homework():
     hid = data['homeworkId']
 
     # 连接数据库
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
 
     try:
@@ -734,7 +734,7 @@ def course_get_sdata(user_name):
         connection = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
         )
         cursor = connection.cursor(dictionary=True)
@@ -756,7 +756,7 @@ def get_homework(user_name):
     conn = mysql.connector.connect(
             host='localhost',
             user='root',
-            password='124356tbw',
+            password='Ys012567',
             database='pa'
     )
     cursor = conn.cursor(dictionary=True)
@@ -771,7 +771,7 @@ def get_homework(user_name):
 @app.route('/api/welcome_s/getUnsubmittedCourses/<user_name>', methods=['GET'])
 def get_unsubmitted_course_count(user_name):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 首先根据user_name获取user_id
@@ -792,7 +792,7 @@ def get_unsubmitted_course_count(user_name):
 @app.route('/api/welcome_s/getPendingCourseCount/<user_name>', methods=['GET'])
 def get_pending_course_count(user_name):
     try:
-        conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+        conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
         cursor = conn.cursor()
 
         # 首先根据user_name获取user_id
@@ -812,7 +812,7 @@ def get_pending_course_count(user_name):
 
 @app.route('/api/course_platform_s/mission/getmission/<user_name>', methods=['GET'])
 def get_mission(user_name):
-    conn = mysql.connector.connect(host='localhost', user='root', password='124356tbw', database='pa')
+    conn = mysql.connector.connect(host='localhost', user='root', password='Ys012567', database='pa')
     cursor = conn.cursor()
 
     try:
@@ -865,7 +865,7 @@ def assign():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',
-        password='124356tbw',
+        password='Ys012567',
         database='pa'
     )
     cursor = conn.cursor()
