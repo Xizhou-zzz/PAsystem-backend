@@ -896,6 +896,16 @@ def download_file(filename):
     return send_from_directory(directory, filename, as_attachment=True)
 
 
+
+@app.route('/api/course_platform_s/mission/postdata',methods=['POST'])
+def appeal():
+    data = request.json
+    appeal_value = data['appeal']
+    # 在这里处理接收到的数据
+    print('Received appeal:', appeal_value)
+    return jsonify({'message': '数据已成功提交'}), 200
+
+
 if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
 
