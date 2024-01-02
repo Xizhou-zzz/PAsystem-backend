@@ -903,6 +903,10 @@ def appeal():
     appeal_value = data['appeal']
     # 在这里处理接收到的数据
     print('Received appeal:', appeal_value)
+
+
+
+
     return jsonify({'message': '数据已成功提交'}), 200
 
 
